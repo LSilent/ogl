@@ -1,7 +1,7 @@
 // Include standard headers
 #include <stdio.h>
 #include <stdlib.h>
-
+#include <functional>
 // Include GLEW
 #include <GL/glew.h>
 
@@ -11,7 +11,8 @@ GLFWwindow* window;
 
 // Include GLM
 #include <glm/glm.hpp>
-#include <glm/gtc/matrix_transform.hpp>
+//#include <glm/gtc/matrix_transform.hpp>
+#include <glm/gtx/transform.hpp>
 using namespace glm;
 
 #include <common/shader.hpp>
@@ -33,7 +34,7 @@ int main( void )
 	glfwWindowHint(GLFW_OPENGL_PROFILE, GLFW_OPENGL_CORE_PROFILE); //We don't want the old OpenGL 
 
 	// Open a window and create its OpenGL context
-	window = glfwCreateWindow( 1024, 768, "Tutorial 03 - Matrices", NULL, NULL);
+	window = glfwCreateWindow( 400, 300, "Tutorial 03 - Matrices", NULL, NULL);
 	if( window == NULL ){
 		fprintf( stderr, "Failed to open GLFW window. If you have an Intel GPU, they are not 3.3 compatible. Try the 2.1 version of the tutorials.\n" );
 		getchar();
@@ -66,18 +67,50 @@ int main( void )
 
 	// Get a handle for our "MVP" uniform
 	GLuint MatrixID = glGetUniformLocation(programID, "MVP");
+	std::function<void(const glm::mat4 &)> printMat4 = [](const glm::mat4 &m){
+		for (auto j = 0; j < 4; ++j)
+		{
+			for (auto i = 0; i < 4; ++i)
+			{
+				printf("%.1f ", m[i][j]);
+			}
+			printf("\n");
+		}
+		
 
-	// Projection matrix : 45° Field of View, 4:3 ratio, display range : 0.1 unit <-> 100 units
-	glm::mat4 Projection = glm::perspective(glm::radians(45.0f), 4.0f / 3.0f, 0.1f, 100.0f);
+	};
+
+	std::function<void(const glm::vec4 &)> printVec4 = [](const glm::vec4 &v){
+		for (auto i = 0; i < 4; ++i)
+		{
+			printf("%.1f ", v[i]);
+		}
+		printf("\n");
+	};
+	// Projection matrix : 45?Field of View, 4:3 ratio, display range : 0.1 unit <-> 100 units
+	glm::mat4 Projection = glm::perspective(glm::radians(45.0f), 4.0f / 3.0f, 0.0f, 100.0f);
 	// Or, for an ortho camera :
 	//glm::mat4 Projection = glm::ortho(-10.0f,10.0f,-10.0f,10.0f,0.0f,100.0f); // In world coordinates
 	
 	// Camera matrix
 	glm::mat4 View       = glm::lookAt(
-								glm::vec3(4,3,3), // Camera is at (4,3,3), in World Space
+								glm::vec3(0,0,3), // Camera is at (4,3,3), in World Space
 								glm::vec3(0,0,0), // and looks at the origin
 								glm::vec3(0,1,0)  // Head is up (set to 0,-1,0 to look upside-down)
 						   );
+	//glm::mat4 Trans = glm::translate(glm::vec3(2.0f, 3.0f, 4.0f));
+	glm::mat4 Trans = glm::translate(glm::vec3(-1.0f, 0.0f, 0.0f));
+	printf("camera matrix\n");
+	printMat4(View);
+	printf("translate matrix\n");
+	printMat4(Trans);
+	glm::vec4 point = glm::vec4(-3.0f, 0.0f, 0.0f, 1.0f);
+	printf("vec4 1:");
+	glm::vec4 pointV = View * point;
+	printVec4(pointV);
+	printf("vec4 2:");
+	glm::vec4 pointT = Trans * point; 
+	printVec4(pointT);
 	// Model matrix : an identity matrix (model will be at the origin)
 	glm::mat4 Model      = glm::mat4(1.0f);
 	// Our ModelViewProjection : multiplication of our 3 matrices
